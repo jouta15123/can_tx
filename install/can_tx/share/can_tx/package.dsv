@@ -1,0 +1,5 @@
+source;share/can_tx/local_setup.bash
+source;share/can_tx/local_setup.dsv
+source;share/can_tx/local_setup.ps1
+source;share/can_tx/local_setup.sh
+source;share/can_tx/local_setup.zsh

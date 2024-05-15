@@ -1,0 +1,7 @@
+[01m[K/home/autoware/autoware/src/vehicle/external/can_tx/src/can_tx.cpp:2:10:[m[K [01;31m[Kfatal error: [m[Kautoware_auto_control_msgs/msg/ackermann_control_command.hpp: そのようなファイルやディレクトリはありません
+    2 | #include [01;31m[K<autoware_auto_control_msgs/msg/ackermann_control_command.hpp>[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+gmake[2]: *** [CMakeFiles/autoware_to_cantx.dir/build.make:76: CMakeFiles/autoware_to_cantx.dir/src/can_tx.cpp.o] エラー 1
+gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/autoware_to_cantx.dir/all] エラー 2
+gmake: *** [Makefile:146: all] エラー 2
