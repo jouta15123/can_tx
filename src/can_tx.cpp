@@ -99,7 +99,7 @@ private:
 
     can_msg.data[0] = 0x08; // size
     can_msg.data[1] = 0x08; // mode
-    can_msg.data[2] = 0x37; // PID for turn signal
+    can_msg.data[2] = 0x25; // PID for turn signal
     can_msg.data[3] = turn_signal; // Turn signal command
 
     // 残りのデータバイトをゼロで埋める
@@ -130,7 +130,7 @@ private:
     int16_t throttle_opening = static_cast<int16_t>(msg->actuation.accel_cmd * 32767);
     can_msg_throttle.data[0] = 0x08; // size
     can_msg_throttle.data[1] = 0x08; // mode
-    can_msg_throttle.data[2] = 0x34; // PID for throttle opening
+    can_msg_throttle.data[2] = 0x22; // PID for throttle opening
     can_msg_throttle.data[3] = (throttle_opening >> 8) & 0xFF; // High byte of throttle opening
     can_msg_throttle.data[4] = throttle_opening & 0xFF; // Low byte of throttle opening
 
@@ -155,7 +155,7 @@ private:
     int16_t brake_force = static_cast<int16_t>(msg->actuation.brake_cmd * 32767);
     can_msg_brake.data[0] = 0x08; // size
     can_msg_brake.data[1] = 0x08; // mode
-    can_msg_brake.data[2] = 0x35; // PID for brake force
+    can_msg_brake.data[2] = 0x23; // PID for brake force
     can_msg_brake.data[3] = (brake_force >> 8) & 0xFF; // High byte of brake force
     can_msg_brake.data[4] = brake_force & 0xFF; // Low byte of brake force
 
