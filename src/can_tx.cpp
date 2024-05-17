@@ -26,6 +26,11 @@ public:
     actuation_cmd_sub_ = this->create_subscription<tier4_vehicle_msgs::msg::ActuationCommandStamped>(
         "/control/command/actuation_cmd", 10,
         std::bind(&AutowareToCantx::actuationCmdCallback, this, std::placeholders::_1));
+    
+    timer_ = this->create_wall_timer(
+      std::chrono::seconds(1),
+      std::bind(&AutowareToCantx::headlightCmdCallback, this)
+    );
 
     // CANトピックのパブリッシャーの初期化
     can_pub_ = this->create_publisher<can_msgs::msg::Frame>("/can_tx", 10);
@@ -74,7 +79,7 @@ private:
     can_msgs::msg::Frame can_msg;
     can_msg.header.stamp = this->get_clock()->now();
     can_msg.id = 0x7DF;
-    can_msg.is_rtr = true;
+    can_msg.is_rtr = false;
     can_msg.is_extended = false;
     can_msg.is_error = false;
     can_msg.dlc = 8;
@@ -84,16 +89,16 @@ private:
     switch (msg->command) {
       case autoware_auto_vehicle_msgs::msg::TurnIndicatorsCommand::NO_COMMAND:
       case autoware_auto_vehicle_msgs::msg::TurnIndicatorsCommand::DISABLE:
-        turn_signal = 0; // OFF
+        turn_signal = 0x00; // OFF
         break;
       case autoware_auto_vehicle_msgs::msg::TurnIndicatorsCommand::ENABLE_LEFT:
-        turn_signal = 2; // Turn L
+        turn_signal = 0x02; // Turn L
         break;
       case autoware_auto_vehicle_msgs::msg::TurnIndicatorsCommand::ENABLE_RIGHT:
-        turn_signal = 1; // Turn R
+        turn_signal = 0x01; // Turn R
         break;
       default:
-        turn_signal = 0; // デフォルトはOFF
+        turn_signal = 0x00; // デフォルトはOFF
         break;
     }
 
@@ -154,7 +159,7 @@ private:
     can_msgs::msg::Frame can_msg_brake;
     can_msg_brake.header.stamp = this->get_clock()->now();
     can_msg_brake.id = 0x7DF;
-    can_msg_brake.is_rtr = true;
+    can_msg_brake.is_rtr = false;
     can_msg_brake.is_extended = false;
     can_msg_brake.is_error = false;
     can_msg_brake.dlc = 8;
@@ -176,12 +181,39 @@ private:
     can_pub_->publish(can_msg_brake);
   }
 
+  void headlightCmdCallback(){
+    RCLCPP_INFO(this->get_logger(), "Setting headlight to low beam.");
+
+    can_msgs::msg::Frame can_msg;
+    can_msg.header.stamp = this->get_clock()->now();
+    can_msg.id = 0x7DF;
+    can_msg.is_rtr = false;
+    can_msg.is_extended = false;
+    can_msg.is_error = false;
+    can_msg.dlc = 8;
+
+    can_msg.data[0] = 0x08; // size
+    can_msg.data[1] = 0x08; // mode
+    can_msg.data[2] = 0x24; // PID for headlight
+    can_msg.data[3] = 0x02; // Low beam
+
+    // 残りのデータバイトをゼロで埋める
+    can_msg.data[4] = 0x00;
+    can_msg.data[5] = 0x00;
+    can_msg.data[6] = 0x00;
+    can_msg.data[7] = 0x00;
+
+    // CANメッセージを送信
+    can_pub_->publish(can_msg);
+  }
+
   // サブスクライバー
   rclcpp::Subscription<autoware_auto_control_msgs::msg::AckermannControlCommand>::SharedPtr control_cmd_sub_;
   rclcpp::Subscription<autoware_auto_vehicle_msgs::msg::TurnIndicatorsCommand>::SharedPtr turn_indicators_cmd_sub_;
   rclcpp::Subscription<tier4_vehicle_msgs::msg::ActuationCommandStamped>::SharedPtr actuation_cmd_sub_;
   // パブリッシャー
   rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr can_pub_;
+  rclcpp::TimerBase::SharedPtr timer_;
 };
 
 int main(int argc, char** argv)
