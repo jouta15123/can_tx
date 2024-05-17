@@ -48,7 +48,7 @@ private:
 
     // ステアリング角度のデータをCANフレームに設定
     // ラジアンから16ビット整数への変換（±45度 = ±0.785ラジアンを最大値としてスケーリング）
-    int16_t steering_angle = static_cast<int16_t>(msg->lateral.steering_tire_angle * (32767 / 0.785));
+    int16_t steering_angle = -1 * static_cast<int16_t>(msg->lateral.steering_tire_angle * (32767 / 0.628));
 
     can_msg.data[0] = 0x08; // size
     can_msg.data[1] = 0x08; // mode
@@ -115,19 +115,27 @@ private:
   // アクチュエーションコマンドのコールバック関数
   void actuationCmdCallback(const tier4_vehicle_msgs::msg::ActuationCommandStamped::SharedPtr msg)
   {
+    double throttle_tmp;
+
     RCLCPP_INFO_THROTTLE(this->get_logger(), *this->get_clock(), 5000, "Received actuation command.");
 
     // CANフレームを作成（スロットル開度用）
     can_msgs::msg::Frame can_msg_throttle;
     can_msg_throttle.header.stamp = this->get_clock()->now();
     can_msg_throttle.id = 0x7DF;
-    can_msg_throttle.is_rtr = true;
+    can_msg_throttle.is_rtr = false;
     can_msg_throttle.is_extended = false;
     can_msg_throttle.is_error = false;
     can_msg_throttle.dlc = 8;
 
+    throttle_tmp = msg->actuation.accel_cmd * 32767*10;
+    if(throttle_tmp >= 32767){
+      throttle_tmp = 32767;
+    }else if(throttle_tmp <= -32767){
+      throttle_tmp = -32767;
+    }
     // スロットル開度のデータをCANフレームに設定
-    int16_t throttle_opening = static_cast<int16_t>(msg->actuation.accel_cmd * 32767);
+    int16_t throttle_opening = static_cast<int16_t>(throttle_tmp);
     can_msg_throttle.data[0] = 0x08; // size
     can_msg_throttle.data[1] = 0x08; // mode
     can_msg_throttle.data[2] = 0x22; // PID for throttle opening
